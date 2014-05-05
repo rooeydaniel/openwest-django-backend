@@ -8,22 +8,18 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/1.6/ref/settings/
 """
 
-from os.path import abspath, basename, dirname, join, normpath
-from os import environ
+from os.path import abspath, basename, dirname
 from sys import path
 
 ########## PATH CONFIGURATION
 # Absolute filesystem path to the Django project directory:
 DJANGO_ROOT = dirname(dirname(abspath(__file__)))
-print "DJANGO ROOT: %s" % DJANGO_ROOT
 
 # Absolute filesystem path to the top-level project folder:
 SITE_ROOT = dirname(DJANGO_ROOT)
-print "SITE ROOT: %s" % SITE_ROOT
 
 # Site name:
 SITE_NAME = basename(DJANGO_ROOT)
-print "SITE NAME: %s" % SITE_NAME
 
 # Add our project to our pythonpath, this way we don't need to type our project
 # name in our dotted import paths:
@@ -159,9 +155,14 @@ DJANGO_APPS = (
     'django.contrib.messages',
 )
 
-THIRD_PARTY_APPS = ()
+THIRD_PARTY_APPS = (
+    # http://south.readthedocs.org/en/latest/index.html
+    'south',
+)
 
-LOCAL_APPS = ()
+LOCAL_APPS = (
+    'task',
+)
 
 # See: https://docs.djangoproject.com/en/dev/ref/settings/#installed-apps
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
