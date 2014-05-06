@@ -1,5 +1,6 @@
 from django.db import models
 
+
 # https://docs.djangoproject.com/en/1.6/topics/db/models/
 class Task(models.Model):
     class Meta:

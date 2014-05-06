@@ -8,7 +8,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/1.6/ref/settings/
 """
 
-from os.path import abspath, basename, dirname
+from os.path import abspath, basename, dirname, normpath, join
 from sys import path
 
 ########## PATH CONFIGURATION
@@ -76,54 +76,51 @@ ALLOWED_HOSTS = []
 ## See: https://docs.djangoproject.com/en/dev/ref/settings/#media-url
 #MEDIA_URL = '/media/'
 ########### END MEDIA CONFIGURATION
-#
-########### STATIC FILE CONFIGURATION
-## See: https://docs.djangoproject.com/en/dev/ref/settings/#static-root
-#STATIC_ROOT = normpath(join(SITE_ROOT, 'staticfiles'))
-#print "STATIC ROOT: %s" % STATIC_ROOT
-#
-## See: https://docs.djangoproject.com/en/dev/ref/settings/#static-url
-#STATIC_URL = '/static/'
-#
-## See: https://docs.djangoproject.com/en/dev/ref/contrib/staticfiles/#std:setting-STATICFILES_DIRS
-#STATICFILES_DIRS = ()
-#
-## See: https://docs.djangoproject.com/en/dev/ref/contrib/staticfiles/#staticfiles-finders
-#STATICFILES_FINDERS = (
-#    'django.contrib.staticfiles.finders.FileSystemFinder',
-#    'django.contrib.staticfiles.finders.AppDirectoriesFinder',
-#)
-########### END STATIC FILE CONFIGURATION
-#
+
+########## STATIC FILE CONFIGURATION
+# See: https://docs.djangoproject.com/en/dev/ref/settings/#static-root
+STATIC_ROOT = normpath(join(SITE_ROOT, 'staticfiles'))
+
+# See: https://docs.djangoproject.com/en/dev/ref/settings/#static-url
+STATIC_URL = '/static/'
+
+# See: https://docs.djangoproject.com/en/dev/ref/contrib/staticfiles/#std:setting-STATICFILES_DIRS
+STATICFILES_DIRS = ()
+
+# See: https://docs.djangoproject.com/en/dev/ref/contrib/staticfiles/#staticfiles-finders
+STATICFILES_FINDERS = (
+    'django.contrib.staticfiles.finders.FileSystemFinder',
+    'django.contrib.staticfiles.finders.AppDirectoriesFinder',
+)
+########## END STATIC FILE CONFIGURATION
+
 ########### SECRET CONFIGURATION
 ## See: https://docs.djangoproject.com/en/dev/ref/settings/#secret-key
 #SECRET_KEY = environ.get('SECRET_KEY')
 ########### END SECRET CONFIGURATION
-#
-########### TEMPLATE CONFIGURATION
-## See: https://docs.djangoproject.com/en/dev/ref/settings/#template-context-processors
-#TEMPLATE_CONTEXT_PROCESSORS = (
-#    'django.contrib.auth.context_processors.auth',
-#    'django.core.context_processors.debug',
-#    'django.core.context_processors.i18n',
-#    'django.core.context_processors.media',
-#    'django.core.context_processors.static',
-#    'django.core.context_processors.tz',
-#    'django.contrib.messages.context_processors.messages',
-#    'django.core.context_processors.request',
-#)
-#
-## See: https://docs.djangoproject.com/en/dev/ref/settings/#template-loaders
-#TEMPLATE_LOADERS = (
-#    'django.template.loaders.filesystem.Loader',
-#    'django.template.loaders.app_directories.Loader',
-#)
-#
-## See: https://docs.djangoproject.com/en/dev/ref/settings/#template-dirs
-#TEMPLATE_DIRS = (
-#    normpath(join(SITE_ROOT, 'apps', 'common', 'templates')),
-#)
-########### END TEMPLATE CONFIGURATION
+
+########## TEMPLATE CONFIGURATION
+# See: https://docs.djangoproject.com/en/dev/ref/settings/#template-context-processors
+TEMPLATE_CONTEXT_PROCESSORS = (
+    'django.contrib.auth.context_processors.auth',
+    'django.core.context_processors.debug',
+    'django.core.context_processors.i18n',
+    'django.core.context_processors.media',
+    'django.core.context_processors.static',
+    'django.core.context_processors.tz',
+    'django.contrib.messages.context_processors.messages',
+    'django.core.context_processors.request',
+)
+
+# See: https://docs.djangoproject.com/en/dev/ref/settings/#template-loaders
+TEMPLATE_LOADERS = (
+    'django.template.loaders.filesystem.Loader',
+    'django.template.loaders.app_directories.Loader',
+)
+
+# See: https://docs.djangoproject.com/en/dev/ref/settings/#template-dirs
+TEMPLATE_DIRS = ()
+########## END TEMPLATE CONFIGURATION
 
 ########## MIDDLEWARE CONFIGURATION
 # See: https://docs.djangoproject.com/en/dev/ref/settings/#middleware-classes
@@ -153,6 +150,11 @@ DJANGO_APPS = (
     'django.contrib.sessions',
     'django.contrib.sites',
     'django.contrib.messages',
+    'django.contrib.staticfiles',
+    'django_admin_bootstrapped.bootstrap3',
+    'django_admin_bootstrapped',
+    'django.contrib.admindocs',
+    'django.contrib.admin',
 )
 
 THIRD_PARTY_APPS = (
@@ -204,7 +206,8 @@ LOGGING = {
 WSGI_APPLICATION = 'project.confs.wsgi.application'
 ######## END WSGI CONFIGURATION
 
+########## If a local_settings.py exists, let's load it
 try:
-	from project.settings.local_settings import *
+    from project.settings.local_settings import *
 except Exception as e:
     print "Local settings file does not exist: %s" % e.message
