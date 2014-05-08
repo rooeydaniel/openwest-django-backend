@@ -290,3 +290,210 @@ Django Admin
     'django_admin_bootstrapped.bootstrap3',
     'django_admin_bootstrapped',
 ```
+
+Django Routes and Function-based Views
+--------------------------------------
+# https://docs.djangoproject.com/en/1.6/topics/http/urls/
+
+1. Create routes in your task app
+```
+    from django.conf.urls import patterns, url
+
+    urlpatterns = patterns('task.views',
+        # GET and POST /tasks
+        url(r'^tasks$', 'tasks', name="tasks"),
+
+        # GET, PUT and DELETE /tasks/1
+        url(r'^tasks/(?P<pk>[0-9]+)$', 'task_by_id', name="task-by-id"),
+
+        # GET and POST /categories
+        url(r'^categories$', 'categories', name="categories"),
+
+        # GET, PUT and DELETE /tasks/1
+        url(r'^categories/(?P<pk>[0-9]+)$', 'category_by_id', name="category-by-id"),
+
+        # GET and POST /priorities
+        url(r'^priorities', 'priorities', name="priorities"),
+
+        # GET, PUT and DELETE /tasks/1
+        url(r'^priorities/(?P<pk>[0-9]+)$', 'priority_by_id', name="priority-by-id"),
+    )
+```
+
+2. Include these routes in your main urls file under project
+```
+    url(r'^', include(task.urls)),
+```
+
+3. Create the views for the task routes
+```
+    from django.views.decorators.http import require_http_methods
+    from django.http import HttpResponse
+    from django.core import serializers
+    from json import dumps
+
+    from .models import *
+
+    @require_http_methods(["GET", "POST"])
+    def tasks(request):
+        if request.method == 'POST':
+            name = request.POST['name'] if request.POST.has_key('name') else None
+            description = request.POST['description'] if request.POST.has_key('description') else None
+            priority = request.POST['priority'] if request.POST.has_key('priority') else None
+            due_date = request.POST['due_date'] if request.POST.has_key('due_date') else None
+            category = request.POST['category'] if request.POST.has_key('category') else None
+            tags = request.POST['tags'] if request.POST.has_key('tags') else None
+
+            # Should do some validation here
+
+            category = Category.objects.get(pk=category)
+            new_task = Task.objects.create(name=name, description=description, priority=priority, due_date=due_date,
+                                           category=category)
+
+            tags = tags.split(',')
+            for tag in tags:
+                new_task.tags.add(Tag.objects.get(pk=tag))
+
+        data = serializers.serialize("json", Task.objects.all().order_by('create_date'))
+        return HttpResponse(data, content_type="application/json")
+
+    @require_http_methods(["GET", "PUT", "DELETE"])
+    def task_item_by_id(request, pk):
+        try:
+            task = Task.objects.get(pk=pk)
+            data = serializers.serialize("json", [task])
+
+            if request.method == 'PUT':
+                print 'The resource was updated!'
+
+            elif request.method == 'DELETE':
+                data = serializers.serialize("json", Task.objects.all().order_by('create_date'))
+                print 'The resource was deleted!'
+
+            return HttpResponse(data, content_type="application/json")
+        except Exception as e:
+            return HttpResponse(dumps({'error': 'The resource does not exist'}), content_type="application/json")
+```
+
+4. Turn off CSRF Middleware
+```
+    # 'django.middleware.csrf.CsrfViewMiddleware',
+```
+
+5. Test GET and POST RESTful APIs with Postman in Chrome
+```
+    GET
+
+    http://localhost:8001/task/1
+
+    POST
+
+    name = Test Task Four
+    description = Test
+    priority = 2
+    due_date = 2014-05-09
+    category = 2
+    tags = 1, 2, 3
+
+    GET
+
+    http://localhost:8001/task/4
+```
+
+6. Create the views for the other two resources (category, tags)
+```
+    @require_http_methods(["GET", "POST"])
+    def categories(request):
+        if request.method == 'POST':
+            name = request.POST['name'] if request.POST.has_key('name') else None
+            description = request.POST['description'] if request.POST.has_key('description') else None
+
+            # Should do some validation here
+
+            Category.objects.create(name=name, description=description)
+
+        data = serializers.serialize("json", Category.objects.all().order_by('name'))
+        return HttpResponse(data, content_type="application/json")
+
+    @require_http_methods(["GET", "PUT", "DELETE"])
+    def category_by_id(request, pk):
+        try:
+            category = Category.objects.get(pk=pk)
+            data = serializers.serialize("json", [category])
+
+            if request.method == 'PUT':
+                print 'The resource was updated!'
+
+            elif request.method == 'DELETE':
+                data = serializers.serialize("json", Category.objects.all().order_by('name'))
+                print 'The resource was deleted!'
+
+            return HttpResponse(data, content_type="application/json")
+        except Exception as e:
+            return HttpResponse(dumps({'error': 'The resource does not exist'}), content_type="application/json")
+
+    @require_http_methods(["GET", "POST"])
+    def tags(request):
+        if request.method == 'POST':
+            name = request.POST['name'] if request.POST.has_key('name') else None
+
+            # Should do some validation here
+
+            Tag.objects.create(name=name)
+
+        data = serializers.serialize("json", Tag.objects.all().order_by('name'))
+        return HttpResponse(data, content_type="application/json")
+
+    @require_http_methods(["GET", "PUT", "DELETE"])
+    def tag_by_id(request, pk):
+        try:
+            tag = Tag.objects.get(pk=pk)
+            data = serializers.serialize("json", [tag])
+
+            if request.method == 'PUT':
+                print 'The resource was updated!'
+
+            elif request.method == 'DELETE':
+                data = serializers.serialize("json", Tag.objects.all().order_by('name'))
+                print 'The resource was deleted!'
+
+            return HttpResponse(data, content_type="application/json")
+        except Exception as e:
+            return HttpResponse(dumps({'error': 'The resource does not exist'}), content_type="application/json")
+```
+
+7. Test GET and POST RESTful APIs with Postman in Chrome
+```
+    GET
+
+    http://localhost:8001/categories
+
+    GET
+
+    http://localhost:8001/categories/1
+
+    POST
+
+    name = Test Category Three
+    description = Testing for Test Category Three
+
+    GET
+
+    http://localhost:8001/categories/3
+
+    GET
+
+    http://localhost:8001/tags
+
+    GET
+
+    http://localhost:8001/tags/1
+
+    POST
+
+    name = Test Tag Four
+
+    GET
+
+    http://localhost:8001/tags/4
+```
