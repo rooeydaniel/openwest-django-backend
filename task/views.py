@@ -1,113 +1,228 @@
-# https://docs.djangoproject.com/en/1.6/topics/http/decorators/#allowed-http-methods
-from django.views.decorators.http import require_http_methods
-
 # https://docs.djangoproject.com/en/1.6/ref/request-response/#httpresponse-objects
 from django.http import HttpResponse
 
-# https://docs.djangoproject.com/1.6/dev/topics/serialization/
-from django.core import serializers
+# http://www.django-rest-framework.org/tutorial/1-serialization#writing-regular-django-views-using-our-serializer
+from rest_framework.decorators import api_view
 
-# https://docs.python.org/2/library/json.html
-from json import dumps
+# Allow us to temporarily turn off CSRF check while we test
+from django.views.decorators.csrf import csrf_exempt
 
-from .models import *
+# http://www.django-rest-framework.org/tutorial/2-requests-and-responses#status-codes
+from rest_framework import status
 
-@require_http_methods(["GET", "POST"])
+# http://www.django-rest-framework.org/tutorial/2-requests-and-responses#response-objects
+from rest_framework.response import Response
+
+# http://www.django-rest-framework.org/tutorial/3-class-based-views
+from rest_framework import generics
+from rest_framework import mixins
+
+# http://www.django-rest-framework.org/tutorial/5-relationships-and-hyperlinked-apis
+# https://docs.djangoproject.com/en/1.6/topics/http/urls/#reverse-resolution-of-urls
+from rest_framework.reverse import reverse
+
+from .serializers import *
+
+
+# http://www.django-rest-framework.org/api-guide/generic-views#genericapiview
+# http://www.django-rest-framework.org/api-guide/generic-views#mixins
+# http://www.django-rest-framework.org/api-guide/status-codes
+
+###################################################################
+##################### CLASS-BASED VIEWS ###########################
+###################################################################
+class TaskList(mixins.ListModelMixin, mixins.CreateModelMixin, generics.GenericAPIView):
+    queryset = Task.objects.all()
+    serializer_class = TaskSerializer
+
+    def get(self, request, *args, **kwargs):
+        return self.list(request, *args, **kwargs)
+
+    def post(self, request, *args, **kwargs):
+        return self.create(request, *args, **kwargs)
+
+
+class TaskDetail(mixins.RetrieveModelMixin, mixins.UpdateModelMixin, mixins.DestroyModelMixin, generics.GenericAPIView):
+    queryset = Task.objects.all()
+    serializer_class = TaskSerializer
+
+    def get(self, request, *args, **kwargs):
+        return self.retrieve(request, *args, **kwargs)
+
+    def put(self, request, *args, **kwargs):
+        return self.update(request, *args, **kwargs)
+
+    def delete(self, request, *args, **kwargs):
+        return self.destroy(request, *args, **kwargs)
+
+
+class CategoryList(mixins.ListModelMixin, mixins.CreateModelMixin, generics.GenericAPIView):
+    queryset = Category.objects.all()
+    serializer_class = CategorySerializer
+
+    def get(self, request, *args, **kwargs):
+        return self.list(request, *args, **kwargs)
+
+    def post(self, request, *args, **kwargs):
+        return self.create(request, *args, **kwargs)
+
+
+class CategoryDetail(mixins.RetrieveModelMixin, mixins.UpdateModelMixin, mixins.DestroyModelMixin, generics.GenericAPIView):
+    queryset = Category.objects.all()
+    serializer_class = CategorySerializer
+
+    def get(self, request, *args, **kwargs):
+        return self.retrieve(request, *args, **kwargs)
+
+    def put(self, request, *args, **kwargs):
+        return self.update(request, *args, **kwargs)
+
+    def delete(self, request, *args, **kwargs):
+        return self.destroy(request, *args, **kwargs)
+
+
+class TagList(mixins.ListModelMixin, mixins.CreateModelMixin, generics.GenericAPIView):
+    queryset = Tag.objects.all()
+    serializer_class = TagSerializer
+
+    def get(self, request, *args, **kwargs):
+        return self.list(request, *args, **kwargs)
+
+    def post(self, request, *args, **kwargs):
+        return self.create(request, *args, **kwargs)
+
+
+class TagDetail(mixins.RetrieveModelMixin, mixins.UpdateModelMixin, mixins.DestroyModelMixin, generics.GenericAPIView):
+    queryset = Tag.objects.all()
+    serializer_class = TagSerializer
+
+    def get(self, request, *args, **kwargs):
+        return self.retrieve(request, *args, **kwargs)
+
+    def put(self, request, *args, **kwargs):
+        return self.update(request, *args, **kwargs)
+
+    def delete(self, request, *args, **kwargs):
+        return self.destroy(request, *args, **kwargs)
+###################################################################
+
+
+###################################################################
+##################### FUNCTION-BASED VIEWS ########################
+###################################################################
+# https://docs.djangoproject.com/en/1.6/topics/http/urls/#reverse-resolution-of-urls
+@api_view(('GET',))
+def api_root(request, format=None):
+    return Response({
+        'tasks': reverse('task_items', request=request, format=format),
+        'categories': reverse('category_items', request=request, format=format),
+        'tags': reverse('tag_items', request=request, format=format)
+    })
+
+
+@api_view(['GET', 'POST'])
+@csrf_exempt
 def tasks(request):
     # https://docs.djangoproject.com/en/dev/ref/request-response/#attributes
     if request.method == 'POST':
-        name = request.POST['name'] if request.POST.has_key('name') else None
-        description = request.POST['description'] if request.POST.has_key('description') else None
-        priority = request.POST['priority'] if request.POST.has_key('priority') else None
-        due_date = request.POST['due_date'] if request.POST.has_key('due_date') else None
-        category = request.POST['category'] if request.POST.has_key('category') else None
-        tags = request.POST['tags'] if request.POST.has_key('tags') else None
+        serializer = TaskSerializer(data=request.DATA)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-        # Should do some validation here
+    serializer = TaskSerializer(Task.objects.all().order_by('create_date'), many=True)
+    return Response(serializer.data)
 
-        category = Category.objects.get(pk=category)
-        new_task = Task.objects.create(name=name, description=description, priority=priority, due_date=due_date,
-                                       category=category)
 
-        tags = tags.split(',')
-        for tag in tags:
-            new_task.tags.add(Tag.objects.get(pk=tag))
-
-    data = serializers.serialize("json", Task.objects.all().order_by('create_date'))
-    return HttpResponse(data, content_type="application/json")
-
-@require_http_methods(["GET", "PUT", "DELETE"])
+@api_view(["GET", "PUT", "DELETE"])
+@csrf_exempt
 def task_item_by_id(request, pk):
     try:
         task = Task.objects.get(pk=pk)
-        data = serializers.serialize("json", [task])
 
         if request.method == 'PUT':
-            print 'The resource was updated!'
-
+            serializer = TaskSerializer(task, data=request.DATA)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data, status=status.HTTP_201_CREATED)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         elif request.method == 'DELETE':
-            data = serializers.serialize("json", Task.objects.all().order_by('create_date'))
-            print 'The resource was deleted!'
-
-        return HttpResponse(data, content_type="application/json")
+            task.delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        else:
+            serializer = TaskSerializer(task)
+            return Response(serializer.data)
     except Exception as e:
-        return HttpResponse(dumps({'error': 'The resource does not exist'}), content_type="application/json")
+        return HttpResponse(status=status.HTTP_404_NOT_FOUND)
 
-@require_http_methods(["GET", "POST"])
+@api_view(['GET', 'POST'])
+@csrf_exempt
 def categories(request):
+    # https://docs.djangoproject.com/en/dev/ref/request-response/#attributes
     if request.method == 'POST':
-        name = request.POST['name'] if request.POST.has_key('name') else None
-        description = request.POST['description'] if request.POST.has_key('description') else None
+        serializer = CategorySerializer(data=request.DATA)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-        # Should do some validation here
+    serializer = CategorySerializer(Category.objects.all().order_by('name'), many=True)
+    return Response(serializer.data)
 
-        Category.objects.create(name=name, description=description)
-
-    data = serializers.serialize("json", Category.objects.all().order_by('name'))
-    return HttpResponse(data, content_type="application/json")
-
-@require_http_methods(["GET", "PUT", "DELETE"])
+@api_view(["GET", "PUT", "DELETE"])
+@csrf_exempt
 def category_by_id(request, pk):
     try:
         category = Category.objects.get(pk=pk)
-        data = serializers.serialize("json", [category])
 
         if request.method == 'PUT':
-            print 'The resource was updated!'
-
+            serializer = CategorySerializer(category, data=request.DATA)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data, status=status.HTTP_201_CREATED)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         elif request.method == 'DELETE':
-            data = serializers.serialize("json", Category.objects.all().order_by('name'))
-            print 'The resource was deleted!'
-
-        return HttpResponse(data, content_type="application/json")
+            category.delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        else:
+            serializer = CategorySerializer(category)
+            return Response(serializer.data)
     except Exception as e:
-        return HttpResponse(dumps({'error': 'The resource does not exist'}), content_type="application/json")
+        return HttpResponse(status=status.HTTP_404_NOT_FOUND)
 
-@require_http_methods(["GET", "POST"])
+@api_view(['GET', 'POST'])
+@csrf_exempt
 def tags(request):
+    # https://docs.djangoproject.com/en/dev/ref/request-response/#attributes
     if request.method == 'POST':
-        name = request.POST['name'] if request.POST.has_key('name') else None
+        serializer = TagSerializer(data=request.DATA)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-        # Should do some validation here
+    serializer = TagSerializer(Tag.objects.all().order_by('name'), many=True)
+    return Response(serializer.data)
 
-        Tag.objects.create(name=name)
-
-    data = serializers.serialize("json", Tag.objects.all().order_by('name'))
-    return HttpResponse(data, content_type="application/json")
-
-@require_http_methods(["GET", "PUT", "DELETE"])
+@api_view(["GET", "PUT", "DELETE"])
+@csrf_exempt
 def tag_by_id(request, pk):
     try:
         tag = Tag.objects.get(pk=pk)
-        data = serializers.serialize("json", [tag])
 
         if request.method == 'PUT':
-            print 'The resource was updated!'
-
+            serializer = TagSerializer(tag, data=request.DATA)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data, status=status.HTTP_201_CREATED)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         elif request.method == 'DELETE':
-            data = serializers.serialize("json", Tag.objects.all().order_by('name'))
-            print 'The resource was deleted!'
-
-        return HttpResponse(data, content_type="application/json")
+            tag.delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        else:
+            serializer = TagSerializer(tag)
+            return Response(serializer.data)
     except Exception as e:
-        return HttpResponse(dumps({'error': 'The resource does not exist'}), content_type="application/json")
+        return HttpResponse(status=status.HTTP_404_NOT_FOUND)
+###################################################################

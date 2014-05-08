@@ -10,7 +10,7 @@ from django.contrib import admin
 admin.autodiscover()
 
 # The 'r' in front of each regular expression string is optional but recommended.
-# It tells Python that a string is “raw” – that nothing in the string should be escaped.
+# It tells Python that a string is "raw" - that nothing in the string should be escaped.
 urlpatterns = patterns('',
     # https://docs.djangoproject.com/en/1.6/ref/contrib/admin/admindocs/
     url(r'^admin/doc/', include('django.contrib.admindocs.urls')),

@@ -497,3 +497,308 @@ Django Routes and Function-based Views
 
     http://localhost:8001/tags/4
 ```
+
+Django REST Framework, Serializers and Class-based Views
+--------------------------------------------------------
+# http://www.django-rest-framework.org
+
+1. Add the Django REST Framework to requirements and install
+```
+    djangorestframework==2.3.13
+
+    pip install -r requirements.txt
+```
+
+2. Add the rest_framework to your THIRD_PARTY_APPS
+```
+    'rest_framework',
+```
+
+3. Create serializers for our models
+```
+    from rest_framework import serializers
+
+    from .models import *
+
+
+    class TaskSerializer(serializers.ModelSerializer):
+        class Meta:
+            model = Task
+
+
+    class CategorySerializer(serializers.ModelSerializer):
+        class Meta:
+            model = Category
+
+
+    class TagSerializer(serializers.ModelSerializer):
+        class Meta:
+            model = Tag
+```
+
+4. Adjust views to use our new serializers
+```
+    from rest_framework.decorators import api_view
+    from django.views.decorators.csrf import csrf_exempt
+    from rest_framework import status
+    from rest_framework.response import Response
+
+    @api_view(['GET', 'POST'])
+    @csrf_exempt
+    def tasks(request):
+        # https://docs.djangoproject.com/en/dev/ref/request-response/#attributes
+        if request.method == 'POST':
+            serializer = TaskSerializer(data=request.DATA)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data, status=status.HTTP_201_CREATED)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        serializer = TaskSerializer(Task.objects.all().order_by('create_date'), many=True)
+        return Response(serializer.data)
+
+
+    @api_view(["GET", "PUT", "DELETE"])
+    @csrf_exempt
+    def task_item_by_id(request, pk):
+        try:
+            task = Task.objects.get(pk=pk)
+
+            if request.method == 'PUT':
+                serializer = TaskSerializer(task, data=request.DATA)
+                if serializer.is_valid():
+                    serializer.save()
+                    return Response(serializer.data, status=status.HTTP_201_CREATED)
+                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            elif request.method == 'DELETE':
+                task.delete()
+                return Response(status=status.HTTP_204_NO_CONTENT)
+            else:
+                serializer = TaskSerializer(task)
+                return Response(serializer.data)
+        except Exception as e:
+            return HttpResponse(status=status.HTTP_404_NOT_FOUND)
+
+    @api_view(['GET', 'POST'])
+    @csrf_exempt
+    def categories(request):
+        # https://docs.djangoproject.com/en/dev/ref/request-response/#attributes
+        if request.method == 'POST':
+            serializer = CategorySerializer(data=request.DATA)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data, status=status.HTTP_201_CREATED)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        serializer = CategorySerializer(Category.objects.all().order_by('name'), many=True)
+        return Response(serializer.data)
+
+    @api_view(["GET", "PUT", "DELETE"])
+    @csrf_exempt
+    def category_by_id(request, pk):
+        try:
+            category = Category.objects.get(pk=pk)
+
+            if request.method == 'PUT':
+                serializer = CategorySerializer(category, data=request.DATA)
+                if serializer.is_valid():
+                    serializer.save()
+                    return Response(serializer.data, status=status.HTTP_201_CREATED)
+                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            elif request.method == 'DELETE':
+                category.delete()
+                return Response(status=status.HTTP_204_NO_CONTENT)
+            else:
+                serializer = CategorySerializer(category)
+                return Response(serializer.data)
+        except Exception as e:
+            return HttpResponse(status=status.HTTP_404_NOT_FOUND)
+
+    @api_view(['GET', 'POST'])
+    @csrf_exempt
+    def tags(request):
+        # https://docs.djangoproject.com/en/dev/ref/request-response/#attributes
+        if request.method == 'POST':
+            serializer = TagSerializer(data=request.DATA)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data, status=status.HTTP_201_CREATED)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        serializer = TagSerializer(Tag.objects.all().order_by('name'), many=True)
+        return Response(serializer.data)
+
+    @api_view(["GET", "PUT", "DELETE"])
+    @csrf_exempt
+    def tag_by_id(request, pk):
+        try:
+            tag = Tag.objects.get(pk=pk)
+
+            if request.method == 'PUT':
+                serializer = TagSerializer(tag, data=request.DATA)
+                if serializer.is_valid():
+                    serializer.save()
+                    return Response(serializer.data, status=status.HTTP_201_CREATED)
+                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            elif request.method == 'DELETE':
+                tag.delete()
+                return Response(status=status.HTTP_204_NO_CONTENT)
+            else:
+                serializer = TagSerializer(tag)
+                return Response(serializer.data)
+        except Exception as e:
+            return HttpResponse(status=status.HTTP_404_NOT_FOUND)
+```
+
+5. Uncomment CSRF middleware in settings.py
+6. Test views through browser
+```
+    GET
+
+    http://localhost:8001/tasks
+
+    POST
+
+    {
+        "name": "Test Task Five",
+        "description": "Testing for test task five",
+        "priority": 3,
+        "due_date": "2014-05-10T10:37",
+        "category": 3,
+        "tags": [
+            1,
+            2,
+            3
+        ]
+    }
+
+    GET
+
+    http://localhost:8001/tasks
+```
+
+7. Update urls file for new class-based views
+```
+    # GET and POST /tasks
+    # url(r'^tasks$', 'tasks', name="task_items"),  # function-based view
+    url(r'^tasks$', TaskList.as_view(), name="task_items"),  # class-based view
+
+    # GET, PUT and DELETE /tasks/1
+    # https://docs.djangoproject.com/en/1.6/topics/http/urls/#named-groups
+    # url(r'^tasks/(?P<pk>[0-9]+)$', 'task_item_by_id', name="task-item-by-id"),  # function-based view
+    url(r'^tasks/(?P<pk>[0-9]+)$', TaskDetail.as_view(), name="task-item-by-id"),  # class-based view
+
+    # GET and POST /categories
+    # url(r'^categories$', 'categories', name="category_items"),  # function-based view
+    url(r'^categories$', CategoryList.as_view(), name="category_items"),  # class-based view
+
+    # GET, PUT and DELETE /categories/1
+    # https://docs.djangoproject.com/en/1.6/topics/http/urls/#named-groups
+    # url(r'^categories/(?P<pk>[0-9]+)$', 'category_by_id', name="category-by-id"),  # function-based view
+    url(r'^categories/(?P<pk>[0-9]+)$', CategoryDetail.as_view(), name="category-by-id"),  # class-based view
+
+    # GET and POST /tags
+    # url(r'^tags$', 'tags', name="tag_items"),  # function-based view
+    url(r'^tags$', TagList.as_view(), name="tag_items"),  # class-based view
+
+    # GET, PUT and DELETE /tags/1
+    # https://docs.djangoproject.com/en/1.6/topics/http/urls/#named-groups
+    # url(r'^tags/(?P<pk>[0-9]+)$', 'tag_by_id', name="tag-by-id"),  # function-based view
+    url(r'^tags/(?P<pk>[0-9]+)$', TagDetail.as_view(), name="tag-by-id"),  # class-based view
+
+```
+
+8. Convert views to class-based views
+```
+    # http://www.django-rest-framework.org/tutorial/3-class-based-views
+    from rest_framework import generics
+    from rest_framework import mixins
+
+    class TaskList(mixins.ListModelMixin, mixins.CreateModelMixin, generics.GenericAPIView):
+        queryset = Task.objects.all()
+        serializer_class = TaskSerializer
+
+        def get(self, request, *args, **kwargs):
+            return self.list(request, *args, **kwargs)
+
+        def post(self, request, *args, **kwargs):
+            return self.create(request, *args, **kwargs)
+
+
+    class TaskDetail(mixins.RetrieveModelMixin, mixins.UpdateModelMixin, mixins.DestroyModelMixin, generics.GenericAPIView):
+        queryset = Task.objects.all()
+        serializer_class = TaskSerializer
+
+        def get(self, request, *args, **kwargs):
+            return self.retrieve(request, *args, **kwargs)
+
+        def put(self, request, *args, **kwargs):
+            return self.update(request, *args, **kwargs)
+
+        def delete(self, request, *args, **kwargs):
+            return self.destroy(request, *args, **kwargs)
+
+
+    class CategoryList(mixins.ListModelMixin, mixins.CreateModelMixin, generics.GenericAPIView):
+        queryset = Category.objects.all()
+        serializer_class = CategorySerializer
+
+        def get(self, request, *args, **kwargs):
+            return self.list(request, *args, **kwargs)
+
+        def post(self, request, *args, **kwargs):
+            return self.create(request, *args, **kwargs)
+
+
+    class CategoryDetail(mixins.RetrieveModelMixin, mixins.UpdateModelMixin, mixins.DestroyModelMixin, generics.GenericAPIView):
+        queryset = Category.objects.all()
+        serializer_class = CategorySerializer
+
+        def get(self, request, *args, **kwargs):
+            return self.retrieve(request, *args, **kwargs)
+
+        def put(self, request, *args, **kwargs):
+            return self.update(request, *args, **kwargs)
+
+        def delete(self, request, *args, **kwargs):
+            return self.destroy(request, *args, **kwargs)
+
+
+    class TagList(mixins.ListModelMixin, mixins.CreateModelMixin, generics.GenericAPIView):
+        queryset = Tag.objects.all()
+        serializer_class = TagSerializer
+
+        def get(self, request, *args, **kwargs):
+            return self.list(request, *args, **kwargs)
+
+        def post(self, request, *args, **kwargs):
+            return self.create(request, *args, **kwargs)
+
+
+    class TagDetail(mixins.RetrieveModelMixin, mixins.UpdateModelMixin, mixins.DestroyModelMixin, generics.GenericAPIView):
+        queryset = Tag.objects.all()
+        serializer_class = TagSerializer
+
+        def get(self, request, *args, **kwargs):
+            return self.retrieve(request, *args, **kwargs)
+
+        def put(self, request, *args, **kwargs):
+            return self.update(request, *args, **kwargs)
+
+        def delete(self, request, *args, **kwargs):
+            return self.destroy(request, *args, **kwargs)
+```
+
+9. Retest views through your browser
+10. Add a browsable endpoint
+```
+    url(r'^$', 'api_root', name="api-root"),
+
+    @api_view(('GET',))
+    def api_root(request, format=None):
+        return Response({
+            'tasks': reverse('task_items', request=request, format=format),
+            'categories': reverse('category_items', request=request, format=format),
+            'tags': reverse('tag_items', request=request, format=format)
+        })
+```

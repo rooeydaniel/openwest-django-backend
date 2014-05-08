@@ -133,7 +133,7 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.sessions.middleware.SessionMiddleware',
 
     # https://docs.djangoproject.com/en/1.6/ref/contrib/csrf/#ajax
-    # 'django.middleware.csrf.CsrfViewMiddleware',
+    'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
 )
@@ -162,6 +162,7 @@ DJANGO_APPS = (
 THIRD_PARTY_APPS = (
     # http://south.readthedocs.org/en/latest/index.html
     'south',
+    'rest_framework',
 )
 
 LOCAL_APPS = (
