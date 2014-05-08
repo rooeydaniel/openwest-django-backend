@@ -6,30 +6,19 @@ RESTful APIs with Django and AngularJS
 
 Django Project Setup
 --------------------
-1. Clone front-end project
-```
-    git clone https://github.com/rooeydaniel/openwest-angular-frontend.git
-```
-
-2. Clone back-end project
+1. Clone back-end project
 ```
     git clone https://github.com/rooeydaniel/openwest-django-backend.git
 ```
 
-3. Create and activate virtual environment
-4. Install app packages through PIP
-5. Run Django's internal server
+2. Create and activate virtual environment
+3. Install app packages through PIP
+4. Run Django's internal server
 ```
     python manage.py runserver 8001
 ```
 
-6. Run Node's internal server
-```
-    node server/server.js
-```
-
-7. Open up front-end in your browser - http://localhost:8000/public/index.html
-8. Open up back-end in your browser - http://localhost:8001
+5. Open up back-end in your browser - http://localhost:8001
 
 Django Models
 -------------
