@@ -136,6 +136,9 @@ MIDDLEWARE_CLASSES = (
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
+
+    # http://www.django-rest-framework.org/topics/ajax-csrf-cors
+    'corsheaders.middleware.CorsMiddleware',
 )
 ########## END MIDDLEWARE CONFIGURATION
 
