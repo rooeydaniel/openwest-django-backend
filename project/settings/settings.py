@@ -221,6 +221,15 @@ LOGGING = {
 WSGI_APPLICATION = 'project.confs.wsgi.application'
 ######## END WSGI CONFIGURATION
 
+CORS_ORIGIN_ALLOW_ALL = True
+CORS_ALLOW_HEADERS = (
+    'X-REQUESTED-WITH',
+    'CONTENT-TYPE',
+    'ACCEPT',
+    'ORIGIN',
+    'X-CSRFToken'
+)
+
 ########## If a local_settings.py exists, let's load it
 try:
     from project.settings.local_settings import *
