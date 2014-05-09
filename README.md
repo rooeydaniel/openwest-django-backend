@@ -825,4 +825,61 @@ Deploy to Heroku
     ########## END DATABASE CONFIGURATION
 ```
 
-5.
+5. Add a Heroku Procfile
+```
+    web: gunicorn hellodjango.wsgi
+```
+
+6. Add gunicorn depedency
+```
+    gunicorn==18.0
+```
+
+7. Add ALLOWED_HOSTS to settings.py
+```
+    ALLOWED_HOSTS = ['*']
+```
+
+8. Add CORS to settings file
+```
+    CORS_ORIGIN_ALLOW_ALL = True
+    CORS_ALLOW_HEADERS = (
+        'X-REQUESTED-WITH',
+        'CONTENT-TYPE',
+        'ACCEPT',
+        'ORIGIN',
+        'X-CSRFToken'
+    )
+```
+
+9. Add dj_static
+```
+    dj-static==0.0.5
+```
+
+10. Change wsgi file
+```
+    from django.core.wsgi import get_wsgi_application
+    from dj_static import Cling
+
+    application = Cling(get_wsgi_application())
+```
+
+11. Run syncdb
+```
+    heroku run python manage.py syncdb
+
+    * Note: go ahead and create a super user as we are not doing any authentication
+```
+
+12. Run migrate
+```
+    heroku run python manage.py migrate
+```
+
+13. Merge branch to master and push to heroku
+```
+    git push heroku master
+```
+
+14. Open up your Heroku app and you should see browseable api
