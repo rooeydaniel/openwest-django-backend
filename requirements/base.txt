@@ -6,6 +6,6 @@ docutils==0.11
 django-admin-bootstrapped==1.6.4
 djangorestframework==2.3.13
 django-cors-headers==0.12
-gunicore==18.0
+gunicorn==18.0
 static==0.4
 wsgiref==0.1.2
