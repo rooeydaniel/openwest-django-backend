@@ -9,6 +9,7 @@ https://docs.djangoproject.com/en/1.6/ref/settings/
 """
 
 from os.path import abspath, basename, dirname, normpath, join
+from os import environ
 from sys import path
 
 ########## PATH CONFIGURATION
