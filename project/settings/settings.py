@@ -44,6 +44,14 @@ ADMINS = (
 MANAGERS = ADMINS
 ########## END MANAGER CONFIGURATION
 
+########## DATABASE CONFIGURATION FOR HEROKU
+import dj_database_url
+
+DATABASES = {
+    'default': dj_database_url.config()
+}
+########## END DATABASE CONFIGURATION
+
 ########## GENERAL CONFIGURATION
 # See: https://docs.djangoproject.com/en/dev/ref/settings/#time-zone
 TIME_ZONE = 'America/Denver'
@@ -94,10 +102,10 @@ STATICFILES_FINDERS = (
 )
 ########## END STATIC FILE CONFIGURATION
 
-########### SECRET CONFIGURATION
-## See: https://docs.djangoproject.com/en/dev/ref/settings/#secret-key
-#SECRET_KEY = environ.get('SECRET_KEY')
-########### END SECRET CONFIGURATION
+########## SECRET CONFIGURATION
+# See: https://docs.djangoproject.com/en/dev/ref/settings/#secret-key
+SECRET_KEY = environ.get('SECRET_KEY')
+########## END SECRET CONFIGURATION
 
 ########## TEMPLATE CONFIGURATION
 # See: https://docs.djangoproject.com/en/dev/ref/settings/#template-context-processors

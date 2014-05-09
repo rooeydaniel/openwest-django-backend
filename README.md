@@ -791,3 +791,38 @@ Django REST Framework, Serializers and Class-based Views
             'tags': reverse('tag_items', request=request, format=format)
         })
 ```
+
+Deploy to Heroku
+----------------
+* Note: this goes hand in hand with the Deploy to Heroku section on the front-end
+
+1. From your project folder in your terminal, create a new Heroku site
+```
+    heroku create ow-django-backend
+```
+
+2. Add the secret key config to your settings.py
+```
+    ########## SECRET CONFIGURATION
+    # See: https://docs.djangoproject.com/en/dev/ref/settings/#secret-key
+    SECRET_KEY = environ.get('SECRET_KEY')
+    ########## END SECRET CONFIGURATION
+```
+
+3. Add the config to Heroku
+```
+    heroku config:set SECRET_KEY=openwestisgreat
+```
+
+4. Add a Heroku database configuration to settings.py
+```
+    ########## DATABASE CONFIGURATION FOR HEROKU
+    import dj_database_url
+
+    DATABASES = {
+        'default': dj_database_url.config()
+    }
+    ########## END DATABASE CONFIGURATION
+```
+
+5.
