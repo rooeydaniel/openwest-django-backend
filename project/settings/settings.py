@@ -75,7 +75,7 @@ USE_TZ = True
 
 # Hosts/domain names that are valid for this site; required if DEBUG is False
 # See https://docs.djangoproject.com/en/1.5/ref/settings/#allowed-hosts
-ALLOWED_HOSTS = ['http://ow-django-backend.herokuapp.com']
+ALLOWED_HOSTS = ['*']
 
 ########### MEDIA CONFIGURATION
 ## See: https://docs.djangoproject.com/en/dev/ref/settings/#media-root
