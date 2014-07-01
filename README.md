@@ -883,3 +883,90 @@ Deploy to Heroku
 ```
 
 14. Open up your Heroku app and you should see browseable api
+
+Deploy to Digital Ocean
+-----------------------
+1. Install Python and PIP
+```
+    ssh dstephenson@IP_ADDRESS
+    sudo apt-get install python-pip python-dev build-essential
+    sudo pip install --upgrade pip
+    sudo pip install virtualenvwrapper
+    vi ~/.profile
+    
+        export WORKON_HOME=/home/dstephenson/.virtualenvs
+	    source /usr/local/bin/virtualenvwrapper.sh
+	    
+	. ~/.profile
+    mkvirtualenv /home/dstephenson/.virtualenvs/openwest-django-backend --no-site-packages
+```
+
+2. Install Postgres and create database
+```
+    sudo apt-get install postgresql postgresql-contrib postgresql-server-dev-9.3
+    sudo su -
+    passwd postgres
+    exit
+    
+    su - postgres
+    createuser --pwprompt dstephenson
+    createdb -O dstephenson openwest-django-backend
+    exit
+    psql -U dstephenson openwest-django-backend
+    sudo apt-get install python-pygresql python-pygresql-dbg
+```
+
+3. Install mod_wsgi
+```
+    sudo apt-get install libapache2-mod-wsgi
+    sudo vi /etc/apache2/sites-available/openwest.conf
+    
+        WSGIScriptAlias /api /var/www/openwest/django/project/confs/wsgi.py
+        Alias /static/ /var/www/openwest/django/staticfiles/
+        <Location "/staticfiles/">
+                Options -Indexes
+        </Location>
+        
+        LogFormat "%{X-Forwarded-For}i %l %u %t \"%r\" %>s %b \"%{Referer}i\" \"%{User-Agent}i\"" combined
+        CustomLog /var/www/openwest/logs/user/access_openwest_django_backend.log combined
+        ErrorLog /var/www/openwest/logs/user/error_openwest_django_backend.log
+        
+    mkdir -p /var/www/openwest/logs/user
+    cd /var/www/openwest
+    git clone https://github.com/rooeydaniel/openwest-django-backend django
+```
+
+4. Install PIP Packages
+```
+    workon openwest-django-backend
+    cd /var/www/openwest/django
+    pip install -r requirements.txt
+    
+    vi project/settings/settings.py
+    
+        DATABASES = {
+            'default': {
+                'ENGINE': 'django.db.backends.postgresql_psycopg2',
+                'NAME': 'openwest-django-backend',
+                'USER': 'dstephenson',
+                'PASSWORD': 'd',
+                'HOST': 'localhost'
+            }
+        }
+        
+        SECRET_KEY = 'my_secret_key'
+    
+    vi project/confs/wsgi.py
+    
+        site.addsitedir('/home/dstephenson/.virtualenvs/openwest-django-backend/local/lib/python2.7/site-packages')
+        
+        # Add the app's directory to the PYTHONPATH
+        sys.path.append('/var/www/openwest/django')
+
+        from project.settings.settings import SITE_ROOT
+        
+    python manage syncdb
+    python manage migrate task
+```
+
+5. Go to http://as1.dstephenson.dom/api and add some test categories and tags
